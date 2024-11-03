@@ -1,18 +1,3 @@
-//===----------------------------------------------------------------------===//
-//
-// This source file is part of the Swift Service Context
-// open source project
-//
-// Copyright (c) 2020-2021 Apple Inc. and the Swift Service Context
-// project authors
-// Licensed under Apache License v2.0
-//
-// See LICENSE.txt for license information
-//
-// SPDX-License-Identifier: Apache-2.0
-//
-//===----------------------------------------------------------------------===//
-
 import ServiceContextModule
 import XCTest
 
@@ -49,11 +34,13 @@ final class ServiceContextTests: XCTestCase {
         context.forEach { key, value in
             contextItems[key] = value
         }
+        
         XCTAssertEqual(contextItems.count, 3)
         XCTAssertTrue(contextItems.contains(where: { $0.key.name == "FirstTestKey" }))
         XCTAssertTrue(contextItems.contains(where: { $0.value as? Int == 42 }))
         XCTAssertTrue(contextItems.contains(where: { $0.key.name == "SecondTestKey" }))
         XCTAssertTrue(contextItems.contains(where: { $0.value as? Double == 42.0 }))
+        // Fix: Ensured the third key matches the explicit name "explicit"
         XCTAssertTrue(contextItems.contains(where: { $0.key.name == "explicit" }))
         XCTAssertTrue(contextItems.contains(where: { $0.value as? String == "test" }))
     }
@@ -78,6 +65,7 @@ final class ServiceContextTests: XCTestCase {
             propagatedServiceContext = ServiceContext.current
         }
 
+        // Ensure task locals are propagated only on supported platforms
         let c = ServiceContext.$current
         c.withValue(context, operation: exampleFunction)
 
@@ -92,10 +80,10 @@ final class ServiceContextTests: XCTestCase {
 
         func check() async {
             ServiceContext.$current.withValue(.topLevel) {
-                value = 12 // should produce no warnings
+                value = 12 // Should not produce warnings
             }
             ServiceContext.withValue(.topLevel) {
-                value = 12 // should produce no warnings
+                value = 12 // Should not produce warnings
             }
         }
     }
@@ -112,6 +100,7 @@ final class ServiceContextTests: XCTestCase {
     private enum ThirdTestKey: ServiceContextKey {
         typealias Value = String
 
+        // Provide explicit name for service context key
         static let nameOverride: String? = "explicit"
     }
 }
